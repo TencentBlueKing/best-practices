@@ -13,7 +13,6 @@
   - [异常处理](#异常处理)
   - [工具选择](#工具选择)
   - [2to3](#2to3)
-  - [性能优化](#性能优化)
 - [Django](#django)
   - [DB建模](#db-建模)
   - [DB查询](#db-查询)
@@ -336,94 +335,11 @@ def get_application(access_token, username):
 
 
 
-## 2to3
+# 2to3
 
-### 1. why 2to3
+## Python 版本升级后的注意事项
 
-Python 软件基金会宣布，到 2020 年元旦，将不再为编程语言 Python 2.x 分支提供任何支持。意味着在 2020 年以后 Python2 将不会有官方的支持和修复。 最近的几年里，Python 主流库都做了很多兼容的工作，以帮助我们从 Python2 迁移到 Python3，但是这类的兼容性代码会消耗相当大的人力和性能。 事实上，这种兼容的工作已经在不同程度上停止了，比如 Django 2.0 已宣布不再支持 Python2，可以预见的是，2020 年之后，基本上不会有库再会处理兼容问题了。
-
-#### 如何选择项目的 Python 版本
-
-- **新项目** - 必须使用 Python 3 进行开发（推荐版本: Python 3.6）
-- **老项目(仍在迭代更新)** - 需要尽快迁移至 Python 3
-- **老项目(处于稳定维护状态)** - 可维持当前 Python 版本
-
-### 2. 2to3 工具介绍
-
-[2to3](https://docs.python.org/zh-cn/3/library/2to3.html) 是一个 Python 程序，它可以用来读取 Python 2.x 版本的代码，并使用一系列的修复器 fixer 来将其转换为合法的 Python 3.x 代码。标准库中已经包含了丰富的修复器，这足以处理绝大多数代码。不过 2to3 的支持库 [`lib2to3`](https://docs.python.org/zh-cn/3.7/library/2to3.html#module-lib2to3) 是一个很灵活通用的库， **所以你也可以为 2to3 编写你自己的修复器** 。[`lib2to3`](https://docs.python.org/zh-cn/3.7/library/2to3.html#module-lib2to3) 也可以用在那些需要自动处理 Python 代码的应用中。
-
-2to3 是 Python 自带的一个代码转换工具，可以将 Python2 的代码自动转换为 Python3 的代码。
-
-**注意事项 1：转换后的代码不再对 python2 进行兼容**
-
-**注意事项 2：转换后并不确保功能 100% 可用，需要通过完备的单元测试和集成测试去确保功能正确性**
-
-### 2.1 基本命令
-
-1. 使用 patch 命令生成文件差异
-
-```
-        # 解析 test.py ，并将转换到py3后的文件差异输出到 test.patch
-        2to3 test.py > test.patch
-
-        # 应用 test.patch 中的改动到 test.py
-        patch test.py test.patch
-```
-
-1. 直接把修改写回原文件
-
-```
-# 除非传入了 `-n` 参数，否则会为原始文件创建一个副本
-2to3 -w test.py
-```
-
-1. 将整个项目代码转换到 py3
-
-```
-2to3 -w -n myproject
-```
-
-### 2.2 修复器
-
-转换代码的每一个步骤都封装在修复器中。可以使用 `2to3 -l` 来列出可用的修复器。每个修复器都可以独立地打开或是关闭。
-
-- 使用 `-l` 参数可以列出所有可用的修复器
-- 使用 `-f` 参数可以明确指定需要使用的修复器集合
-- 使用 `-x` 参数则可以明确指定不使用的修复器
-
-### 3. 升级步骤
-
-1. 使用 [caniusepython3](https://pypi.org/project/caniusepython3/) 检查 `requirements.txt` 中是否存在不支持 python 3 的依赖包。若存在，则需要将对应依赖包升级至支持 python 3 的版本
-
-2. 将**开发框架**升级到 `2.5.0` 以上的版本
-
-3. 使用 2to3 工具，将整个项目代码迁移到 py3
-
-   > 建议 checkout 一个新分支进行迁移验证，验证通过后再合并回主分支
-   >
-   > ```
-   > 2to3 -w -n myproject
-   > ```
-
-4. 对个别无法通过 2to3 自动转换的代码，根据控制台输出给的修改建议，进行手动调整
-
-5. 进行完整的单元测试和功能测试
-
-6. 部署到测试环境做进一步的验证
-
-### 4. 使用 Python 3 部署蓝鲸 APP
-
-如需更改 Python 版本，需要开发者在 **App 根目录下** 添加`runtime.txt`文件，并在其中写上自定义版本号，平台会根据这个版本号选择 Python 版本，例如：
-
-```
-python-3.6.6
-```
-
-然后提交到**版本仓库**，部署后即可使用 Python-3.6.6 了
-
-### 5. 迁移过程常见问题及解决方案
-
-#### 1. logging 无法写入中文编码字符，抛出异常 `UnicodeEncodeError`
+### logging 无法写入中文编码字符，抛出异常 `UnicodeEncodeError`
 
 - 原因
 
@@ -433,9 +349,9 @@ python-3.6.6
 
   直接在 logging 增加属性 `'encoding': 'utf-8'`
 
-#### 2. 在获取字符串 MD5 时，抛出异常 `TypeError: Unicode-objects must be encoded before hashing`
+### 在获取字符串 MD5 时，抛出异常 `TypeError: Unicode-objects must be encoded before hashing`
 
-```
+```python
 cache_str = "url_{url}__params_{params}".format(
     url=self.build_actual_url(params), params=json.dumps(params)
 )
@@ -450,7 +366,7 @@ cache_key = hash_md5.hexdigest()
 
 - 解决
 
-```
+```python
 cache_str = "url_{url}__params_{params}".format(
     url=self.build_actual_url(params), params=json.dumps(params)
 )
@@ -459,17 +375,17 @@ hash_md5.update(cache_str.encode('utf-8'))  # 增加encode
 cache_key = hash_md5.hexdigest()
 ```
 
-#### 3. 执行行语句 `'a' >= 2` ，抛出异常 `TypeError: '>=' not supported between instances of 'str' and 'int'`
+### 执行行语句 `'a' >= 2` ，抛出异常 `TypeError: '>=' not supported between instances of 'str' and 'int'`
 
 - 原因
 
   在 Python3 中，不允许直接把字符串和数字直接进行大小比较
 
-#### 4. `xrange` 函数未被 2to3 工具自动替换为 `range`，需要手动修改
+### `xrange` 函数未被 2to3 工具自动替换为 `range`，需要手动修改
 
-#### 5. 执行语句以下语句，抛出异常 `TypeError: 'cmp' is an invalid keyword argument for this function`
+### 执行语句以下语句，抛出异常 `TypeError: 'cmp' is an invalid keyword argument for this function`
 
-```
+```python
 sorted(referenced_weight.items(), cmp=lambda x, y: cmp(x[1], y[1]), reverse=True)
 ```
 
@@ -479,7 +395,7 @@ sorted(referenced_weight.items(), cmp=lambda x, y: cmp(x[1], y[1]), reverse=True
 
 - 解决
 
-```
+```python
 from functools import cmp_to_key
 nums = [1, 3, 2, 4]
 nums.sort(key=cmp_to_key(lambda a, b: a - b))
@@ -488,7 +404,7 @@ print(nums)  # [1, 2, 3, 4]
 
 #### 6. bytes 转换字符串，抛出异常 `TypeError: string argument without an encoding`
 
-```
+```python
 f.encrypt(bytes(node_id))
 ```
 
@@ -498,11 +414,11 @@ f.encrypt(bytes(node_id))
 
 - 解决
 
-```
+```python
 f.encrypt(bytes(node_id, encoding='utf8'))
 ```
 
-#### 7. btytes 类型 json dumps 抛出异常 `Object of type 'bytes' is not JSON serializable`
+### btytes 类型 json dumps 抛出异常 `Object of type 'bytes' is not JSON serializable`
 
 - 原因
 
@@ -512,13 +428,13 @@ f.encrypt(bytes(node_id, encoding='utf8'))
 
   使用 `ujson` 替换掉原生的 `json`
 
-```
+```python
 import ujson as json
 ```
 
-#### 8. base64 编码时，抛出异常 `TypeError: a bytes-like object is required, not 'str'`
+### base64 编码时，抛出异常 `TypeError: a bytes-like object is required, not 'str'`
 
-```
+```python
 file_data = base64.b64encode(json.dumps({
     'template_data': templates_data,
     'digest': digest
@@ -533,16 +449,16 @@ file_data = base64.b64encode(json.dumps({
 
   在 encode 之前，先对 `str` 类型的字符串转换为 `bytes`
 
-```
+```python
 file_data = base64.b64encode(json.dumps({
     'template_data': templates_data,
     'digest': digest
 }, sort_keys=True).encode('utf-8'))
 ```
 
-#### 9. 捕获异常后打印 `e.message` ，抛出异常 `AttributeError: 'Exception' object has no attribute 'message'`
+### 捕获异常后打印 `e.message` ，抛出异常 `AttributeError: 'Exception' object has no attribute 'message'`
 
-```
+```python
 try:
     task.modify_cron(cron, tz)
 except Exception as e:
@@ -560,7 +476,7 @@ except Exception as e:
 
   使用 `str(e)` 进行类型转换
 
-```
+```python
 try:
     task.modify_cron(cron, tz)
 except Exception as e:
@@ -570,7 +486,7 @@ except Exception as e:
     })
 ```
 
-#### 10. 中文字符串字面量前不需添加 `u` 前缀
+### 中文字符串字面量前不需添加 `u` 前缀
 
 > 注意：该建议只适用于 Python3 版本
 
@@ -583,17 +499,6 @@ hello_world = u'hello，你好'
 # GOOD
 hello_world = 'hello，你好'
 ```
-
-
-
-## 性能优化
-
-1. 尽量使用 generator（生成器），如 `xrange`, `yield`, `dict.iteritems()`, `itertools`
-2. 排序尽量使用 `.sort()`， 其中使用 key 比 cmp 效率更高
-3. 适当使用 list 迭代表达式，如`[i for i in xrane(10)]`
-4. 使用 set 来判断元素的存在
-5. 使用 dequeue 来做双端队列
-
 
 
 # Django
@@ -611,7 +516,7 @@ Django最佳实践、优化思路
 - 使用正确的字段类型，避免`TextField`代替`CharField`，`IntegerField`代替`BooleanField`等
 - 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值
 
-```
+```python
 class Students(models.Model):
     class Gender(object):
         MALE = 'MALE'
@@ -627,7 +532,7 @@ class Students(models.Model):
 
 - 如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引
 
-```
+```python
 # 字段索引：使用 db_index=True 添加索引
 title = models.CharField(max_length=255, db_index=True)
 
@@ -654,7 +559,7 @@ class Meta:
 
 - 避免全表扫描。优先使用`exists`, `count`等方法
 
-```
+```python
 # 获取 project 的数量
 projects = Project.objects.filter(enable=True)
 
@@ -667,7 +572,7 @@ project_count = projects.count()
 
 - 避免 N + 1 查询。可使用`select_related`提前将关联表进行 join，一次性获取相关数据，many-to-many 的外键则使用`prefetch_related`
 
-```
+```python
 # select_related
 
 # Bad
@@ -696,7 +601,7 @@ for item in articles:
 
 - 如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取
 
-```
+```python
 # 获取学生的班级ID
 student = Student.objects.first()
 
@@ -709,7 +614,7 @@ cls_id = student.cls_id
 
 - 避免查询全部字段。可使用`values`, `values_list`, `only`, `defer`等方法进行过滤出需要使用的字段。
 
-```
+```python
 # 仅获取学生姓名的列表
 
 # Bad
@@ -722,7 +627,7 @@ students = Student.objects.all().values_list('name', flat=True)
 
 - 避免在循环中进行数据库操作。尽量使用 ORM 提供的批量方法，防止在数据量变大的时候产生大量数据库连接导致请求变慢
 
-```
+```python
 # 批量创建项目
 project_names = ['ProjectA', 'ProjectB', 'ProjectC']
 
@@ -762,7 +667,7 @@ projects.update(enable=True)
 
 - 避免隐式的子查询
 
-```
+```python
 # 查询符合条件的组别中的人员
 
 # Bad: 将查询集作为下一个查询的过滤条件，因此产生了子查询。IN 语句中的子查询在外层查询的每一行中都会被执行一次，复杂度为 O(n^2)
@@ -776,7 +681,7 @@ members = Member.objects.filter(group__id__in=list(group_ids))
 
 - `update_or_create` 与 `get_or_create` 不是线程安全的。因此查询条件的字段必须要有唯一性约束
 
-```
+```python
 # 为了保证逻辑的正确性，Host 表中的 ip 和 bk_cloud_id 字段必须设置为 unique_together。否则在高并发情况下，可能会创建出多条相同的记录，最终导致逻辑异常
 host, is_created = Host.objects.get_or_create(
     ip="127.0.0.1",
@@ -786,7 +691,7 @@ host, is_created = Host.objects.get_or_create(
 
 - 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询。当查询结果有很多对象时，QuerySet 的缓存行为会导致使用大量内存。如果你需要对查询结果进行好几次循环，这种缓存是有意义的，但是对于 QuerySet 只循环一次的情况，缓存就没什么意义了。在这种情况下，`iterator()`可能是更好的选择
 
-```
+```python
 # Bad
 for task in Task.objects.all():
     # do something
