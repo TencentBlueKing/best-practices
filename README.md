@@ -34,6 +34,7 @@
   - [DB 建模](#db-建模)
     - [如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值](#如果字段的取值是一个有限集合应使用-choices-选项声明枚举值)
     - [如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引](#如果某个字段或某组字段被频繁用于过滤或排序查询建议建立单字段索引或联合索引)
+    - [变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`](#变更数据表时新增字段尽量使用-nulltrue-而不是-default)
   - [DB 查询](#db-查询)
     - [使用 .exists() 判断数据是否存在](#使用-exists-判断数据是否存在)
     - [使用 .count() 查询数据条目数](#使用-count-查询数据条目数)
@@ -46,7 +47,6 @@
     - [`update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束](#update_or_create-与-get_or_create-查询条件的字段必须要有唯一性约束)
     - [如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询](#如果查询集只用于单次循环建议使用-iterator-保持连接查询)
     - [针对数据库字段更新尽量使用 `update_fields`](#针对数据库字段更新尽量使用-update_fields)
-    - [变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`](#变更数据表时新增字段尽量使用-nulltrue-而不是-default)
     - [使用 Django Extra 查询时，需要使用内置的字符串表达](#使用-django-extra-查询时需要使用内置的字符串表达)
     - [善用 bulk_create/bulk_update 减少批量数据库操作耗时](#善用-bulk_createbulk_update-减少批量数据库操作耗时)
     - [当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
@@ -416,6 +416,19 @@ class Meta:
     unique_together = ('field_name_1', 'field_name_2')
 ```
 
+### 变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`
+
+```python
+# BAD
+new_field = models.CharField(default="foo")
+
+# GOOD
+new_field = models.CharField(null=True)
+```
+
+前者将会在 `migrate` 操作时对已存在的数据批量刷新，对现有数据库带来不必要的影响。
+
+参考：https://pankrat.github.io/2015/django-migrations-without-downtimes/
 
 
 ## DB 查询
@@ -629,20 +642,6 @@ foo_instance.save(update_fields=["bar_field"])
 ```
 
 同时需要注意的是，如果 `Model` 中包含 `auto_now` 字段时，需要在 `update_fields` 的列表中添加该字段，保证同时更新。
-
-### 变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`
-
-```python
-# BAD
-new_field = models.CharField(default="foo")
-
-# GOOD
-new_field = models.CharField(null=True)
-```
-
-前者将会在 `migrate` 操作时对已存在的数据批量刷新，对现有数据库带来不必要的影响。
-
-参考：https://pankrat.github.io/2015/django-migrations-without-downtimes/
 
 ### 使用 Django Extra 查询时，需要使用内置的字符串表达
 
