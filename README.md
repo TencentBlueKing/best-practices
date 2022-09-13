@@ -1,35 +1,64 @@
-# Python 最佳实践
+# 🐳 蓝鲸 Python 最佳实践 🐍
 
-该编程手册为腾讯蓝鲸在日常编码中，总结沉淀的 Python 以及相关框架(Django\DRF等)的编程经验。内容将跟随项目发展与 Python 以及框架的更新不断改进。
+该文档为[腾讯蓝鲸团队](https://bk.tencent.com/)已逾10年的 Python 编程最佳实践的经验总结，包括 Python 以及相关框架(Django\DRF等)等多个领域。内容将跟随项目发展与语言/框架的更新不断改进。
 
-## 目录
-
+# 目录
+- [🐳 蓝鲸 Python 最佳实践 🐍](#-蓝鲸-python-最佳实践-)
+- [目录](#目录)
 - [Python](#python)
   - [内置数据结构](#内置数据结构)
+    - [避免魔术数字](#避免魔术数字)
+    - [不要预计算字面量表达式](#不要预计算字面量表达式)
   - [内置模块](#内置模块)
+    - [使用 operator 模块替代简单 lambda 函数](#使用-operator-模块替代简单-lambda-函数)
+      - [替代相乘函数](#替代相乘函数)
+      - [替代索引获取函数](#替代索引获取函数)
+      - [替代属性获取函数](#替代属性获取函数)
+    - [logging 模块：尽量使用参数，而不是直接拼接字符串](#logging-模块尽量使用参数而不是直接拼接字符串)
   - [生成器与迭代器](#生成器与迭代器)
+    - [未激活生成器的陷阱](#未激活生成器的陷阱)
+    - [使用现代化字符串格式化方法](#使用现代化字符串格式化方法)
   - [函数](#函数)
+    - [统一返回值类型](#统一返回值类型)
+    - [增加类型注解](#增加类型注解)
+    - [优先使用异常替代错误编码返回](#优先使用异常替代错误编码返回)
   - [面向对象编程](#面向对象编程)
+    - [使用 dataclass 定义数据类](#使用-dataclass-定义数据类)
+      - [在数据量较大的场景下，需要在结构的便利性和性能中做平衡](#在数据量较大的场景下需要在结构的便利性和性能中做平衡)
   - [异常处理](#异常处理)
+    - [避免含糊不清的异常捕获](#避免含糊不清的异常捕获)
   - [工具选择](#工具选择)
-  - [2to3](#2to3)
+    - [使用 PyMySQL 连接 MySQL 数据库](#使用-pymysql-连接-mysql-数据库)
+    - [使用 dogpile.cache 做缓存](#使用-dogpilecache-做缓存)
 - [Django](#django)
-  - [DB建模](#db-建模)
-  - [DB查询](#db-查询)
-- [Django REST framework](#drf)
-
-
-
+  - [DB 建模](#db-建模)
+    - [如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值](#如果字段的取值是一个有限集合应使用-choices-选项声明枚举值)
+    - [如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引](#如果某个字段或某组字段被频繁用于过滤或排序查询建议建立单字段索引或联合索引)
+    - [变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`](#变更数据表时新增字段尽量使用-nulltrue-而不是-default)
+  - [DB 查询](#db-查询)
+    - [使用 .exists() 判断数据是否存在](#使用-exists-判断数据是否存在)
+    - [使用 .count() 查询数据条目数](#使用-count-查询数据条目数)
+    - [避免 N + 1 查询](#避免-n--1-查询)
+    - [如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取](#如果仅查询外键-id则无需进行连表操作使用-外键名_id-可直接获取)
+    - [避免查询全部字段](#避免查询全部字段)
+    - [避免在循环中进行数据库操作](#避免在循环中进行数据库操作)
+    - [避免隐式的子查询](#避免隐式的子查询)
+    - [`update_or_create` 与 `get_or_create` 通过 defaults 参数避免全表查询](#update_or_create-与-get_or_create-通过-defaults-参数避免全表查询)
+    - [`update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束](#update_or_create-与-get_or_create-查询条件的字段必须要有唯一性约束)
+    - [如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询](#如果查询集只用于单次循环建议使用-iterator-保持连接查询)
+    - [针对数据库字段更新尽量使用 `update_fields`](#针对数据库字段更新尽量使用-update_fields)
+    - [使用 Django Extra 查询时，需要使用内置的字符串表达](#使用-django-extra-查询时需要使用内置的字符串表达)
+    - [善用 bulk_create/bulk_update 减少批量数据库操作耗时](#善用-bulk_createbulk_update-减少批量数据库操作耗时)
+    - [当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
 
 # Python
 
-Python最佳实践、优化思路、工具选择 及 Python 2to3 经验
-
+Python 最佳实践、优化思路、工具选择。
 
 
 ## 内置数据结构
 
-#### 不要在代码中出现魔术数字
+### 避免魔术数字
 
 不要在代码中出现 [Magic Number](https://en.wikipedia.org/wiki/Magic_number_(programming))，常量应该使用 Enum 模块来替代。
 
@@ -217,7 +246,17 @@ def is_odd(num):
 
 ### 增加类型注解
 
+对变量和函数的参数返回值类型做注解，有助于通过静态检查减少类型方面的错误。
 
+```python
+# BAD
+def greeting(name):
+    return 'Hello ' + name
+
+# GOOD
+def greeting(name: str) -> str:
+    return 'Hello ' + name
+```
 
 ### 优先使用异常替代错误编码返回
 
@@ -238,7 +277,6 @@ def disable_agent(ip):
     if not IP_DATA.get(ip):
         raise ErrorCode.UNABLE_TO_DISABLE_AGENT_NO_MATCH_HOST
 ```
-
 
 
 ## 面向对象编程
@@ -268,7 +306,14 @@ class BcsInfoProvider:
     namespace_id: int
     context: dict
 ```
+#### 在数据量较大的场景下，需要在结构的便利性和性能中做平衡
 
+很多场景下，我们会得到比较大的原始数据（比如数万个嵌套的 `dict`），为了更便利地操作这些数据，往往会选择通过 `class` 进行实例化，但基于 Python 孱弱的 CPU 计算性能，这一操作可能会耗时过于久。
+
+所以需要在两方面做平衡：
+- 保持原始数据，获得最好的性能，但是不方便操作
+- 使用 `NamedTuple` 类似的结构，获得一定的结构便利性，但相较于原始数据，会牺牲一定性能
+- 使用 `dataclass` 或者 `class` 等方式，保证最大的结构便利性，但会非常影响性能
 
 
 ## 异常处理
@@ -333,188 +378,14 @@ def get_application(access_token, username):
     # your code
 ```
 
-
-
-# 2to3
-
-## Python 版本升级后的注意事项
-
-### logging 无法写入中文编码字符，抛出异常 `UnicodeEncodeError`
-
-- 原因
-
-  在 Python3 需指定文件流编码
-
-- 解决
-
-  直接在 logging 增加属性 `'encoding': 'utf-8'`
-
-### 在获取字符串 MD5 时，抛出异常 `TypeError: Unicode-objects must be encoded before hashing`
-
-```python
-cache_str = "url_{url}__params_{params}".format(
-    url=self.build_actual_url(params), params=json.dumps(params)
-)
-hash_md5 = hashlib.new('md5')
-hash_md5.update(cache_str)  # 此处抛出异常
-cache_key = hash_md5.hexdigest()
-```
-
-- 原因
-
-  在 Python3，此函数参数为 bytes，需要进行 encode
-
-- 解决
-
-```python
-cache_str = "url_{url}__params_{params}".format(
-    url=self.build_actual_url(params), params=json.dumps(params)
-)
-hash_md5 = hashlib.new('md5')
-hash_md5.update(cache_str.encode('utf-8'))  # 增加encode
-cache_key = hash_md5.hexdigest()
-```
-
-### 执行行语句 `'a' >= 2` ，抛出异常 `TypeError: '>=' not supported between instances of 'str' and 'int'`
-
-- 原因
-
-  在 Python3 中，不允许直接把字符串和数字直接进行大小比较
-
-### `xrange` 函数未被 2to3 工具自动替换为 `range`，需要手动修改
-
-### 执行语句以下语句，抛出异常 `TypeError: 'cmp' is an invalid keyword argument for this function`
-
-```python
-sorted(referenced_weight.items(), cmp=lambda x, y: cmp(x[1], y[1]), reverse=True)
-```
-
-- 原因
-
-  Python 3 把 `sort()` 方法中的`cmp`参数废弃了
-
-- 解决
-
-```python
-from functools import cmp_to_key
-nums = [1, 3, 2, 4]
-nums.sort(key=cmp_to_key(lambda a, b: a - b))
-print(nums)  # [1, 2, 3, 4]
-```
-
-#### 6. bytes 转换字符串，抛出异常 `TypeError: string argument without an encoding`
-
-```python
-f.encrypt(bytes(node_id))
-```
-
-- 原因
-
-  python 3 将字符串转换成 byte 需要指定编码
-
-- 解决
-
-```python
-f.encrypt(bytes(node_id, encoding='utf8'))
-```
-
-### btytes 类型 json dumps 抛出异常 `Object of type 'bytes' is not JSON serializable`
-
-- 原因
-
-  在 python 3 中，json 仅支持序列化 `str` 类型的字符串，而不支持 `bytes` 类型
-
-- 解决
-
-  使用 `ujson` 替换掉原生的 `json`
-
-```python
-import ujson as json
-```
-
-### base64 编码时，抛出异常 `TypeError: a bytes-like object is required, not 'str'`
-
-```python
-file_data = base64.b64encode(json.dumps({
-    'template_data': templates_data,
-    'digest': digest
-}, sort_keys=True))
-```
-
-- 原因
-
-  在 python 3 中，base64 仅支持对 `bytes` 类型字符串的 encode
-
-- 解决
-
-  在 encode 之前，先对 `str` 类型的字符串转换为 `bytes`
-
-```python
-file_data = base64.b64encode(json.dumps({
-    'template_data': templates_data,
-    'digest': digest
-}, sort_keys=True).encode('utf-8'))
-```
-
-### 捕获异常后打印 `e.message` ，抛出异常 `AttributeError: 'Exception' object has no attribute 'message'`
-
-```python
-try:
-    task.modify_cron(cron, tz)
-except Exception as e:
-    return JsonResponse({
-        'result': False,
-        'message': e.message
-    })
-```
-
-- 原因
-
-  python3 `BaseException` 中去掉了 `message` 属性
-
-- 解决
-
-  使用 `str(e)` 进行类型转换
-
-```python
-try:
-    task.modify_cron(cron, tz)
-except Exception as e:
-    return JsonResponse({
-        'result': False,
-        'message': str(e)
-    })
-```
-
-### 中文字符串字面量前不需添加 `u` 前缀
-
-> 注意：该建议只适用于 Python3 版本
-
-在 Python3 中，默认的字符串已经是 unicode 编码。对于包含中文的字符串字面量，可以放心的把 `u` 前缀去掉：
-
-```python
-# 可接受，但是没有必要
-hello_world = u'hello，你好'
-
-# GOOD
-hello_world = 'hello，你好'
-```
-
-
 # Django
 
-Django最佳实践、优化思路
-
+Django最佳实践、优化思路。
 
 
 ## DB 建模
 
-### 1.1 字段设计
-
-- 避免允许 null 值的字段，null 值难以查询优化且占用额外的索引空间
-- 充分考虑每张表的数据规模，选取合适主键字段类型。比如数据创建比较频繁的表，主键建议使用 `BigIntegerField`
-- 使用正确的字段类型，避免`TextField`代替`CharField`，`IntegerField`代替`BooleanField`等
-- 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值
+### 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值
 
 ```python
 class Students(models.Model):
@@ -530,7 +401,7 @@ class Students(models.Model):
     gender = models.IntegerField("性别", choices=GENDER_CHOICES)
 ```
 
-- 如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引
+### 如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引
 
 ```python
 # 字段索引：使用 db_index=True 添加索引
@@ -545,32 +416,54 @@ class Meta:
     unique_together = ('field_name_1', 'field_name_2')
 ```
 
+### 变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`
+
+```python
+# BAD
+new_field = models.CharField(default="foo")
+
+# GOOD
+new_field = models.CharField(null=True)
+```
+
+前者将会在 `migrate` 操作时对已存在的数据批量刷新，对现有数据库带来不必要的影响。
+
+参考：https://pankrat.github.io/2015/django-migrations-without-downtimes/
 
 
 ## DB 查询
 
-### 2.1 基本要求
+### 使用 .exists() 判断数据是否存在
 
-- 了解 Django ORM 是如何缓存数据的
-- 了解 Django ORM 何时会做查询
-- 不要以牺牲代码可读度为代价做过度优化
-
-### 2.2 实际应用
-
-- 避免全表扫描。优先使用`exists`, `count`等方法
+如果要查询记录是否存在，建议使用 `.exists()` 方法。该方法将会往数据库发起一条设置了 `LIMIT 1` 的查询语句，效率最佳。
 
 ```python
-# 获取 project 的数量
-projects = Project.objects.filter(enable=True)
+# BAD
+# 将会查询表中所有结果，效率低
+if Foo.objects.filter(name='test'):
+    # Do something
 
-# Bad: 会强制将 projects 实例化，导致全表扫描
-project_count = len(projects)  
-
-# Good: 直接从数据库层面统计，避免全表扫描
-project_count = projects.count()
+# GOOD
+if Foo.objects.filter(name='test').exists():
+    # Do something
 ```
 
-- 避免 N + 1 查询。可使用`select_related`提前将关联表进行 join，一次性获取相关数据，many-to-many 的外键则使用`prefetch_related`
+### 使用 .count() 查询数据条目数
+
+如果要统计数据条目数，建议使用使用 `.count()` 方法。该方法将会往数据库发起一条 `SELECT count(*)` 查询语句。
+
+```python
+# BAD
+# 将查询表中所有内容，耗费大量内存和 CPU
+count = len(Foo.objects.all())
+
+# GOOD
+count = Foo.objects.count()
+```
+
+### 避免 N + 1 查询
+
+可使用`select_related`提前将关联表进行 join，一次性获取相关数据，many-to-many 的外键则使用`prefetch_related`
 
 ```python
 # select_related
@@ -599,7 +492,7 @@ for item in articles:
     item.tags.all()
 ```
 
-- 如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取
+### 如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取
 
 ```python
 # 获取学生的班级ID
@@ -612,7 +505,8 @@ cls_id = student.cls.id
 cls_id = student.cls_id
 ```
 
-- 避免查询全部字段。可使用`values`, `values_list`, `only`, `defer`等方法进行过滤出需要使用的字段。
+### 避免查询全部字段
+可使用`values`, `values_list`, `only`, `defer`等方法进行过滤出需要使用的字段。
 
 ```python
 # 仅获取学生姓名的列表
@@ -625,7 +519,9 @@ student_names = [student.name for student in students]
 students = Student.objects.all().values_list('name', flat=True)
 ```
 
-- 避免在循环中进行数据库操作。尽量使用 ORM 提供的批量方法，防止在数据量变大的时候产生大量数据库连接导致请求变慢
+### 避免在循环中进行数据库操作
+
+尽量使用 ORM 提供的批量方法，防止在数据量变大的时候产生大量数据库连接导致请求变慢
 
 ```python
 # 批量创建项目
@@ -665,7 +561,7 @@ for project in projects:
 projects.update(enable=True)
 ```
 
-- 避免隐式的子查询
+### 避免隐式的子查询
 
 ```python
 # 查询符合条件的组别中的人员
@@ -679,17 +575,47 @@ group_ids = Group.objects.filter(type="typeA").values_list('id', flat=True)
 members = Member.objects.filter(group__id__in=list(group_ids))
 ```
 
-- `update_or_create` 与 `get_or_create` 不是线程安全的。因此查询条件的字段必须要有唯一性约束
+### `update_or_create` 与 `get_or_create` 通过 defaults 参数避免全表查询
+
+使用 `update_or_create` 与 `get_or_create` 时，需要将 **查询字段** 和 **更新字段** 做区分：
+
+- 前者放在方法参数中，会被 Django 当作查询条件判断是否已有记录
+- 后者应该被放入 `defaults` 参数中，否则将会被当作查询条件，容易触发全表查询
+
 
 ```python
-# 为了保证逻辑的正确性，Host 表中的 ip 和 bk_cloud_id 字段必须设置为 unique_together。否则在高并发情况下，可能会创建出多条相同的记录，最终导致逻辑异常
+# BAD
+ModelA.objects.update_or_create(
+    field_1="field_1",
+    field_2="field_2",
+    field_3="field_3",
+)
+
+# GOOD
+ModelA.objects.update_or_create(
+    field_1="field_1",
+    defaults={
+        "field_2": "field_2",
+        "field_3": "field_3",
+    }
+```
+
+### `update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束
+
+
+```python
+# `update_or_create` 与 `get_or_create` 不是线程安全的。
+# 为了保证逻辑的正确性，Host 表中的 ip 和 bk_cloud_id 字段必须设置为 unique_together。
+# 否则在高并发情况下，可能会创建出多条相同的记录，最终导致逻辑异常
 host, is_created = Host.objects.get_or_create(
     ip="127.0.0.1",
     bk_cloud_id="0"
 )
 ```
 
-- 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询。当查询结果有很多对象时，QuerySet 的缓存行为会导致使用大量内存。如果你需要对查询结果进行好几次循环，这种缓存是有意义的，但是对于 QuerySet 只循环一次的情况，缓存就没什么意义了。在这种情况下，`iterator()`可能是更好的选择
+### 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询
+
+当查询结果有很多对象时，QuerySet 的缓存行为会导致使用大量内存。如果你需要对查询结果进行好几次循环，这种缓存是有意义的，但是对于 QuerySet 只循环一次的情况，缓存就没什么意义了。在这种情况下，`iterator()`可能是更好的选择。
 
 ```python
 # Bad
@@ -701,53 +627,101 @@ for task in Task.objects.all().iterator():
     # do something
 ```
 
-### 使用 values_list(flat=True) 来查询某个字段值
+### 针对数据库字段更新尽量使用 `update_fields`  
 
-如果要查询模型里某字段的值，可以使用 `values_list(flat=True)` 方法，效率最高。
-
-```python
-# BAD
-pks = [obj.id for obj in Foo.objects.all()]
-
-# BAD
-pks = Foo.objects.all().values_list('id')
-pks = [val[0] for val in pks]
-
-# GOOD
-pks = list(Foo.objects.all().values_list('id', flat=True))
-```
-
-### 使用 .exists() 判断数据是否存在
-
-如果要查询记录是否存在，建议使用 `.exists()` 方法。该方法将会往数据库发起一条设置了 `LIMIT 1` 的查询语句，效率最佳。
+如果要对数据库字段进行更新，使用 `update_fields` 避免并行 `save()` 产生数据冲突
 
 ```python
 # BAD
-# 将会查询表中所有结果，效率低
-if Foo.objects.filter(name='test'):
-    # Do something
+foo_instance.bar_field = other_value
+foo_instance.save()
 
 # GOOD
-if Foo.objects.filter(name='test').exists():
-    # Do something
+foo_instance.bar_field = other_value
+foo_instance.save(update_fields=["bar_field"])
 ```
 
-### 使用 .count() 查询数据条目数
+同时需要注意的是，如果 `Model` 中包含 `auto_now` 字段时，需要在 `update_fields` 的列表中添加该字段，保证同时更新。
 
-如果要统计数据条目数，建议使用使用 `.count()` 方法。该方法将会往数据库发起一条 `SELECT count(*)` 查询语句。
+### 使用 Django Extra 查询时，需要使用内置的字符串表达
 
 ```python
 # BAD
-# 将查询表中所有内容，耗费大量内存和 CPU
-count = len(Foo.objects.all())
+# 有注入风险, username 不会被转义，可以直接注入
+Entry.objects.extra(where=[f"headline='{username}'"])
 
 # GOOD
-count = Foo.objects.count()
+# 安全，Django 会将 username 内容转义
+Entry.objects.extra(where=['headline=%s'], params=[username])
 ```
 
+### 善用 bulk_create/bulk_update 减少批量数据库操作耗时
+
+```python
+# BAD
+## 每次都执行commit，整体耗时较长(大约25s左右)
+for num in range(10000):
+    Record.objects.create(num=num)
+
+# GOOD
+## 统一提交数据库，耗时很短(1s以内)
+inserted_list = []
+for num in range(10000):
+    inserted_list.append(Demo(num=num))
+
+Record.objects.bulk_create(inserted_list)
+```
+
+同理，当 Django 版本 > 2.x 时，`bulk_update` 也可以加快批量修改。
+
+```python
+tasks = [
+    Task.objects.create(name='task1', status='start', cost=1),
+    Task.objects.create(name='task2', status='start', cost=1),
+    ...
+]
+
+# BAD
+for task in tasks:
+    task.name = f'{task.pk}-{task.name}'
+    task.save()
+
+# GOOD
+for task in tasks:
+    task.name = f'{task.pk}-{task.name}'
+Task.objects.bulk_update(tasks, ['name'])
+```
+
+同时还有一些需要额外注意: 
+- bulk_create 方法只执行一次数据库交互，这样相当于创建时间一样，并且自定字段不会在返回数据中
+- 当单次提交的对象可能过多时，可通过 `batch_size` 控制
+
+### 当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序
+
+当 MySQL 版本较低时，DATETIME 类型默认是不支持 milliseconds 的，当批量创建对象时，会导致大量记录的 `auto_now_add` 字段都在同一秒，此时根据该字段是无法获得稳定的排序结果的。
+
+```python
+# BAD
+class Foo(models.Model):
+    ...
+    foo = models.DateTimeField(auto_now_add=True)
+    ...
+
+    class Meta:
+        ordering = ["foo"]
 
 
-# DRF
 
-[WIP] DRF相关实践经验...
+# GOOD
+class Foo(models.Model):
+    ...
+    foo = models.DateTimeField(auto_now_add=True)
+    ...
 
+    class Meta:
+        # 使用自增 ID 或者其他能准确表明顺序的字段
+        ordering = ["id"]
+```
+
+参考：
+- https://stackoverflow.com/questions/13344994/mysql-5-6-datetime-doesnt-accept-milliseconds-microseconds
