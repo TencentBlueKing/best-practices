@@ -1,10 +1,8 @@
-# 🐳 蓝鲸 Python 最佳实践 🐍
+# 蓝鲸最佳实践 <!-- omit in toc -->
 
-该文档为[腾讯蓝鲸团队](https://bk.tencent.com/)已逾10年的 Python 编程最佳实践的经验总结，包括 Python 以及相关框架(Django\DRF等)等多个领域。内容将跟随项目发展与语言/框架的更新不断改进。
+该文档为[腾讯蓝鲸团队](https://bk.tencent.com/) 多年的编程最佳实践总结，包括 Python \ Golang 等多个语言及其相关领域。内容将跟随项目发展与语言/框架的更新不断改进。
 
-# 目录
-- [🐳 蓝鲸 Python 最佳实践 🐍](#-蓝鲸-python-最佳实践-)
-- [目录](#目录)
+# 目录 <!-- omit in toc -->
 - [Python](#python)
   - [内置数据结构](#内置数据结构)
     - [避免魔术数字](#避免魔术数字)
@@ -50,10 +48,11 @@
     - [使用 Django Extra 查询时，需要使用内置的字符串表达](#使用-django-extra-查询时需要使用内置的字符串表达)
     - [善用 bulk_create/bulk_update 减少批量数据库操作耗时](#善用-bulk_createbulk_update-减少批量数据库操作耗时)
     - [当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
+- [Golang](#golang)
 
 # Python
 
-Python 最佳实践、优化思路、工具选择。
+Python 🐍 最佳实践、优化思路、工具选择。
 
 
 ## 内置数据结构
@@ -725,3 +724,6 @@ class Foo(models.Model):
 
 参考：
 - https://stackoverflow.com/questions/13344994/mysql-5-6-datetime-doesnt-accept-milliseconds-microseconds
+
+
+# Golang 
