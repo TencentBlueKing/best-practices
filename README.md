@@ -7,6 +7,7 @@
   - [内置数据结构](#内置数据结构)
     - [避免魔术数字](#避免魔术数字)
     - [不要预计算字面量表达式](#不要预计算字面量表达式)
+    - [优先使用列表推导或内联函数](#优先使用列表推导或内联函数)
   - [内置模块](#内置模块)
     - [使用 operator 模块替代简单 lambda 函数](#使用-operator-模块替代简单-lambda-函数)
       - [替代相乘函数](#替代相乘函数)
@@ -19,6 +20,7 @@
   - [函数](#函数)
     - [统一返回值类型](#统一返回值类型)
     - [增加类型注解](#增加类型注解)
+    - [不要使用可变类型作为默认参数](#不要使用可变类型作为默认参数)
     - [优先使用异常替代错误编码返回](#优先使用异常替代错误编码返回)
   - [面向对象编程](#面向对象编程)
     - [使用 dataclass 定义数据类](#使用-dataclass-定义数据类)
@@ -49,6 +51,11 @@
     - [善用 bulk_create/bulk_update 减少批量数据库操作耗时](#善用-bulk_createbulk_update-减少批量数据库操作耗时)
     - [当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
 - [Golang](#golang)
+  - [channel空间设定为1或者阻塞](#channel空间设定为1或者阻塞)
+  - [除for循环以外，不要在代码块初始化中使用:=](#除for循环以外不要在代码块初始化中使用:=)
+  - [channel接受使用两段式](#channel接受使用两段式)
+  - [不能通过取出来的值来判断 key 是不是在 map 中](#不能通过取出来的值来判断-key-是不是在-map-中)
+  - [定义常量时，区分某些类型和标识](#定义常量时区分某些类型和标识)
 
 # Python
 
@@ -91,6 +98,24 @@ if delta_seconds > 950400:
 # GOOD
 if delta_seconds > 11 * 24 * 3600:
     return
+```
+
+### 优先使用列表推导或内联函数
+
+使用列表推导或内联函数能够清晰知道要生成一个列表，并且更简洁
+
+```python
+# BAD
+list_two = []
+for v in list_one:
+    if v[0]:
+        new_list.append(v[1])
+
+# GOOD one
+list_two = [v[1] for v in list_one if v[0]]
+
+# GOOD two
+list_two = list(filter(lambda x: x[0], list_one))
 ```
 
 ## 内置模块
@@ -257,6 +282,33 @@ def greeting(name: str) -> str:
     return 'Hello ' + name
 ```
 
+### 不要使用可变类型作为默认参数
+
+函数作为对象定义的时候就被执行，默认参数是函数的属性，它的值可能会随着函数被调用而改变。
+
+```python
+# BAD
+def foo(li: list = []):
+    li.append(1)
+    print(li)
+
+# GOOD
+def foo(li : Optional[list] = None):
+    li = li or []
+    li.append(1)
+    print(li)
+```
+调用两次foo函数后，不同的输出结果：
+```python
+# BAD
+[1]
+[1,1]
+
+# GOOD
+[1]
+[1]
+```
+
 ### 优先使用异常替代错误编码返回
 
 当函数需要返回错误信息时，以抛出异常优先。
@@ -276,7 +328,6 @@ def disable_agent(ip):
     if not IP_DATA.get(ip):
         raise ErrorCode.UNABLE_TO_DISABLE_AGENT_NO_MATCH_HOST
 ```
-
 
 ## 面向对象编程
 
@@ -727,3 +778,102 @@ class Foo(models.Model):
 
 
 # Golang 
+
+蓝鲸监控团队的Golang实践，持续补充中...
+
+### channel空间设定为1或者阻塞
+
+如果改为其他长度的channel，都需要很详细的评估设计，因此建议默认考虑长度为1或阻塞的channel
+
+```go
+// BAD
+c := make(chan int, 100)
+
+// GOOD
+c := make(chan int)
+```
+
+### 除for循环以外，不要在代码块初始化中使用:=
+
+如果在代码块中使用了新建变量，容易导致覆盖上层的变量而不会发现，容易引发bug
+
+```go
+// BAD 
+if _, err := openFile("/path") {
+   // do something
+}
+
+// GOOD 
+var err error
+if _, err = openFile("/path") {
+   // do something
+}
+```
+
+### channel接受使用两段式
+
+可以避免读取已关闭channel导致panic
+
+```go
+
+// GOOD
+var (
+	ok bool
+)
+if _, ok = <- ch; !ok {
+	// do something when channel is closed.
+}
+```
+
+### 不能通过取出来的值来判断 key 是不是在 map 中
+
+go 会返回元素对应数据类型的零值，取值操作总有值返回，不能通过取出来的值来判断 key 是不是在 map 中
+
+```go
+// error
+x := map[string]string{"demo1": "1", "demo2": "2"}
+if v := x["demo3"]; v == "" {
+  fmt.Println("demo3 is not exist")
+}
+
+
+// right
+x := map[string]string{"demo1": "1", "demo2": "2"}
+if _, ok := x["demo3"]; !ok {
+    fmt.Println("demo3 is not exist")
+}
+```
+
+### 变量接受使用两段式
+
+防止为空的时候 panic
+
+```go
+var (
+  a  interface{}
+  b  int
+  ok bool
+)
+
+// BAD
+b = a.(int)
+
+// GOOD
+b, ok = a.(int)
+```
+
+### 定义常量时，区分某些类型和标识
+
+```go
+// BAD
+const (
+   Red = 0
+   Gray  = 1
+)
+
+// GOOD
+const (
+   Red = iota
+   Gray 
+)
+```
