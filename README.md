@@ -813,9 +813,11 @@ if _, err = openFile("/path") {
 
 ### channel接受使用两段式
 
-可以避免读取已关闭channel导致panic
+由于读取已关闭的channel会导致panic，因此要求在读取channel的代码都使用二段式，可以避免channel已关闭的导致panic
 
 ```go
+// BAD
+value := <- ch
 
 // GOOD
 var (
@@ -831,23 +833,23 @@ if _, ok = <- ch; !ok {
 go 会返回元素对应数据类型的零值，取值操作总有值返回，不能通过取出来的值来判断 key 是不是在 map 中
 
 ```go
-// error
+// BAD
 x := map[string]string{"demo1": "1", "demo2": "2"}
 if v := x["demo3"]; v == "" {
   fmt.Println("demo3 is not exist")
 }
 
 
-// right
+// GOOD
 x := map[string]string{"demo1": "1", "demo2": "2"}
 if _, ok := x["demo3"]; !ok {
     fmt.Println("demo3 is not exist")
 }
 ```
 
-### 变量接受使用两段式
+### 接口类型转换应使用两段式
 
-防止为空的时候 panic
+由于当接口(interface)类型转换为实际类型时，如果类型不正确或接口为nil，会导致panic。因此应该使用二段式或switch的方式来避免panic
 
 ```go
 var (
@@ -861,9 +863,20 @@ b = a.(int)
 
 // GOOD
 b, ok = a.(int)
+// or
+switch a.(type) {
+case int:
+    // do something when type is int
+case float64:
+    // do something when type is float64
+default:
+    // Ooops, trans failed.
+}
 ```
 
-### 定义常量时，区分某些类型和标识
+### 定义常量时，使用自增的方式定义
+
+定义常量时，应使用`itoa`的方式由编译器协助为各个常量赋值，降低后续维护的成本
 
 ```go
 // BAD
