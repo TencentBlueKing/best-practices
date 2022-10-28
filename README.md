@@ -1,62 +1,64 @@
 # 蓝鲸最佳实践 <!-- omit in toc -->
 
-该文档为[腾讯蓝鲸团队](https://bk.tencent.com/) 多年的编程最佳实践总结，包括 Python \ Golang 等多个语言及其相关领域。内容将跟随项目发展与语言/框架的更新不断改进。
+该文档为 **[腾讯蓝鲸团队](https://bk.tencent.com/)** 多年的编程最佳实践总结，包括 Python \ Golang 等多个语言及其相关领域。内容将跟随项目发展与语言/框架的更新不断改进。
+
+为了更方便地索引最佳实践，我们建立了一个简单的标号机制 `BBP`，你可以阅读 [BBP-0000](BBP-0000.md) 了解更多。
 
 # 目录 <!-- omit in toc -->
 - [Python](#python)
   - [内置数据结构](#内置数据结构)
-    - [避免魔术数字](#避免魔术数字)
-    - [不要预计算字面量表达式](#不要预计算字面量表达式)
-    - [优先使用列表推导或内联函数](#优先使用列表推导或内联函数)
+    - [BBP-1001 避免魔术数字](#bbp-1001-避免魔术数字)
+    - [BBP-1002 不要预计算字面量表达式](#bbp-1002-不要预计算字面量表达式)
+    - [BBP-1003 优先使用列表推导或内联函数](#bbp-1003-优先使用列表推导或内联函数)
   - [内置模块](#内置模块)
-    - [使用 operator 模块替代简单 lambda 函数](#使用-operator-模块替代简单-lambda-函数)
+    - [BBP-1004 使用 operator 模块替代简单 lambda 函数](#bbp-1004-使用-operator-模块替代简单-lambda-函数)
       - [替代相乘函数](#替代相乘函数)
       - [替代索引获取函数](#替代索引获取函数)
       - [替代属性获取函数](#替代属性获取函数)
-    - [logging 模块：尽量使用参数，而不是直接拼接字符串](#logging-模块尽量使用参数而不是直接拼接字符串)
+    - [BBP-1005 logging 模块：尽量使用参数，而不是直接拼接字符串](#bbp-1005-logging-模块尽量使用参数而不是直接拼接字符串)
   - [生成器与迭代器](#生成器与迭代器)
-    - [未激活生成器的陷阱](#未激活生成器的陷阱)
-    - [使用现代化字符串格式化方法](#使用现代化字符串格式化方法)
+    - [BBP-1006 警惕未激活生成器的陷阱](#bbp-1006-警惕未激活生成器的陷阱)
+    - [BBP-1007 使用现代化字符串格式化方法](#bbp-1007-使用现代化字符串格式化方法)
   - [函数](#函数)
-    - [统一返回值类型](#统一返回值类型)
-    - [增加类型注解](#增加类型注解)
-    - [不要使用可变类型作为默认参数](#不要使用可变类型作为默认参数)
-    - [优先使用异常替代错误编码返回](#优先使用异常替代错误编码返回)
+    - [BBP-1008 统一返回值类型](#bbp-1008-统一返回值类型)
+    - [BBP-1009 增加类型注解](#bbp-1009-增加类型注解)
+    - [BBP-1010 不要使用可变类型作为默认参数](#bbp-1010-不要使用可变类型作为默认参数)
+    - [BBP-1011 优先使用异常替代错误编码返回](#bbp-1011-优先使用异常替代错误编码返回)
   - [面向对象编程](#面向对象编程)
-    - [使用 dataclass 定义数据类](#使用-dataclass-定义数据类)
+    - [BBP-1012 使用 dataclass 定义数据类](#bbp-1012-使用-dataclass-定义数据类)
       - [在数据量较大的场景下，需要在结构的便利性和性能中做平衡](#在数据量较大的场景下需要在结构的便利性和性能中做平衡)
   - [异常处理](#异常处理)
-    - [避免含糊不清的异常捕获](#避免含糊不清的异常捕获)
+    - [BBP-1013 避免含糊不清的异常捕获](#bbp-1013-避免含糊不清的异常捕获)
   - [工具选择](#工具选择)
-    - [使用 PyMySQL 连接 MySQL 数据库](#使用-pymysql-连接-mysql-数据库)
-    - [使用 dogpile.cache 做缓存](#使用-dogpilecache-做缓存)
+    - [BBP-1014 使用 PyMySQL 连接 MySQL 数据库](#bbp-1014-使用-pymysql-连接-mysql-数据库)
+    - [BBP-1015 使用 dogpile.cache 做缓存](#bbp-1015-使用-dogpilecache-做缓存)
 - [Django](#django)
   - [DB 建模](#db-建模)
-    - [如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值](#如果字段的取值是一个有限集合应使用-choices-选项声明枚举值)
-    - [如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引](#如果某个字段或某组字段被频繁用于过滤或排序查询建议建立单字段索引或联合索引)
-    - [变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`](#变更数据表时新增字段尽量使用-nulltrue-而不是-default)
+    - [BBP-2001 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值](#bbp-2001-如果字段的取值是一个有限集合应使用-choices-选项声明枚举值)
+    - [BBP-2002 如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引](#bbp-2002-如果某个字段或某组字段被频繁用于过滤或排序查询建议建立单字段索引或联合索引)
+    - [BBP-2003 变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`](#bbp-2003-变更数据表时新增字段尽量使用-nulltrue-而不是-default)
   - [DB 查询](#db-查询)
-    - [使用 .exists() 判断数据是否存在](#使用-exists-判断数据是否存在)
-    - [使用 .count() 查询数据条目数](#使用-count-查询数据条目数)
-    - [避免 N + 1 查询](#避免-n--1-查询)
-    - [如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取](#如果仅查询外键-id则无需进行连表操作使用-外键名_id-可直接获取)
-    - [避免查询全部字段](#避免查询全部字段)
-    - [避免在循环中进行数据库操作](#避免在循环中进行数据库操作)
-    - [避免隐式的子查询](#避免隐式的子查询)
-    - [`update_or_create` 与 `get_or_create` 通过 defaults 参数避免全表查询](#update_or_create-与-get_or_create-通过-defaults-参数避免全表查询)
-    - [`update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束](#update_or_create-与-get_or_create-查询条件的字段必须要有唯一性约束)
-    - [如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询](#如果查询集只用于单次循环建议使用-iterator-保持连接查询)
-    - [针对数据库字段更新尽量使用 `update_fields`](#针对数据库字段更新尽量使用-update_fields)
-    - [使用 Django Extra 查询时，需要使用内置的字符串表达](#使用-django-extra-查询时需要使用内置的字符串表达)
-    - [善用 bulk_create/bulk_update 减少批量数据库操作耗时](#善用-bulk_createbulk_update-减少批量数据库操作耗时)
-    - [当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
+    - [BBP-2004 使用 .exists() 判断数据是否存在](#bbp-2004-使用-exists-判断数据是否存在)
+    - [BBP-2005 使用 .count() 查询数据条目数](#bbp-2005-使用-count-查询数据条目数)
+    - [BBP-2006 避免 N + 1 查询](#bbp-2006-避免-n--1-查询)
+    - [BBP-2007 如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取](#bbp-2007-如果仅查询外键-id则无需进行连表操作使用-外键名_id-可直接获取)
+    - [BBP-2008 避免查询全部字段](#bbp-2008-避免查询全部字段)
+    - [BBP-2009 避免在循环中进行数据库操作](#bbp-2009-避免在循环中进行数据库操作)
+    - [BBP-2010 避免隐式的子查询](#bbp-2010-避免隐式的子查询)
+    - [BBP-2011 `update_or_create` 与 `get_or_create` 通过 defaults 参数避免全表查询](#bbp-2011-update_or_create-与-get_or_create-通过-defaults-参数避免全表查询)
+    - [BBP-2012 `update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束](#bbp-2012-update_or_create-与-get_or_create-查询条件的字段必须要有唯一性约束)
+    - [BBP-2013 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询](#bbp-2013-如果查询集只用于单次循环建议使用-iterator-保持连接查询)
+    - [BBP-2014 针对数据库字段更新尽量使用 `update_fields`](#bbp-2014-针对数据库字段更新尽量使用-update_fields)
+    - [BBP-2015 使用 Django Extra 查询时，需要使用内置的字符串表达](#bbp-2015-使用-django-extra-查询时需要使用内置的字符串表达)
+    - [BBP-2016 善用 bulk_create/bulk_update 减少批量数据库操作耗时](#bbp-2016-善用-bulk_createbulk_update-减少批量数据库操作耗时)
+    - [BBP-2017 当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#bbp-2017-当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
 - [Golang](#golang)
-    - [channel空间设定为1或者阻塞](#channel空间设定为1或者阻塞)
-    - [除for循环以外，不要在代码块初始化中使用:=](#除for循环以外不要在代码块初始化中使用)
-    - [channel接受使用两段式](#channel接受使用两段式)
-    - [不能通过取出来的值来判断 key 是不是在 map 中](#不能通过取出来的值来判断-key-是不是在-map-中)
-    - [变量接受使用两段式](#变量接受使用两段式)
-    - [定义常量时，区分某些类型和标识](#定义常量时区分某些类型和标识)
+    - [BBP-3001 channel空间设定为1或者阻塞](#bbp-3001-channel空间设定为1或者阻塞)
+    - [BBP-3002 除for循环以外，不要在代码块初始化中使用:=](#bbp-3002-除for循环以外不要在代码块初始化中使用)
+    - [BBP-3003 channel接受使用两段式](#bbp-3003-channel接受使用两段式)
+    - [BBP-3004 不能通过取出来的值来判断 key 是不是在 map 中](#bbp-3004-不能通过取出来的值来判断-key-是不是在-map-中)
+    - [BBP-3005 接口类型转换应使用两段式](#bbp-3005-接口类型转换应使用两段式)
+    - [BBP-3006 定义常量时，使用自增的方式定义](#bbp-3006-定义常量时使用自增的方式定义)
 
 # Python
 
@@ -65,7 +67,7 @@ Python 🐍 最佳实践、优化思路、工具选择。
 
 ## 内置数据结构
 
-### 避免魔术数字
+### BBP-1001 避免魔术数字
 
 不要在代码中出现 [Magic Number](https://en.wikipedia.org/wiki/Magic_number_(programming))，常量应该使用 Enum 模块来替代。
 
@@ -87,7 +89,7 @@ if cluster_type == BCSType.K8S.value:
 ```
 
 
-### 不要预计算字面量表达式
+### BBP-1002 不要预计算字面量表达式
 
 如果某个变量是通过简单算式得到的，应该保留算式内容。不要直接使用计算后的结果。
 
@@ -101,7 +103,7 @@ if delta_seconds > 11 * 24 * 3600:
     return
 ```
 
-### 优先使用列表推导或内联函数
+### BBP-1003 优先使用列表推导或内联函数
 
 使用列表推导或内联函数能够清晰知道要生成一个列表，并且更简洁
 
@@ -121,7 +123,7 @@ list_two = list(filter(lambda x: x[0], list_one))
 
 ## 内置模块
 
-### 使用 operator 模块替代简单 lambda 函数
+### BBP-1004 使用 operator 模块替代简单 lambda 函数
 
 在很多场景下，`lambda` 函数都可以用 `operator` 模块来替代，后者效率更高。
 
@@ -158,7 +160,7 @@ from operator import attrgetter
 products_by_quantity = sorted(products, key=attrgetter('quantity'))
 ```
 
-### logging 模块：尽量使用参数，而不是直接拼接字符串
+### BBP-1005 logging 模块：尽量使用参数，而不是直接拼接字符串
 
 在使用 `logging` 模块打印日志时，请尽量 **不要** 在第一个参数内拼接好日志内容（不论是使用何种方式）。正确的做法是只在第一个参数提供模板，参数由后面传入。
 
@@ -179,7 +181,7 @@ logging.warning("To iterate is %s, to recurse %s", "human", "divine")
 
 ## 生成器与迭代器
 
-### 未激活生成器的陷阱
+### BBP-1006 警惕未激活生成器的陷阱
 
 调用生成器函数后，拿到的对象是处于“未激活”状态的生成器对象。比如下面的 `get_something()` 函数，当你调用它时并不会抛出 `ZeroDivisionError` 异常：
 
@@ -221,7 +223,7 @@ Traceback (most recent call last):
 ZeroDivisionError: division by zero
 ```
 
-### 使用现代化字符串格式化方法
+### BBP-1007 使用现代化字符串格式化方法
 
 在需要格式化字符串时，请使用 [str.format()](https://docs.python.org/3/library/stdtypes.html#str.format) 或 [f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings)。
 
@@ -250,7 +252,7 @@ f"{a}-{b}-{c}-{d}"
 
 ## 函数
 
-### 统一返回值类型
+### BBP-1008 统一返回值类型
 
 单个函数应该总是返回同一类数据。
 
@@ -269,7 +271,7 @@ def is_odd(num):
     return False
 ```
 
-### 增加类型注解
+### BBP-1009 增加类型注解
 
 对变量和函数的参数返回值类型做注解，有助于通过静态检查减少类型方面的错误。
 
@@ -283,7 +285,7 @@ def greeting(name: str) -> str:
     return 'Hello ' + name
 ```
 
-### 不要使用可变类型作为默认参数
+### BBP-1010 不要使用可变类型作为默认参数
 
 函数作为对象定义的时候就被执行，默认参数是函数的属性，它的值可能会随着函数被调用而改变。
 
@@ -310,7 +312,7 @@ def foo(li : Optional[list] = None):
 [1]
 ```
 
-### 优先使用异常替代错误编码返回
+### BBP-1011 优先使用异常替代错误编码返回
 
 当函数需要返回错误信息时，以抛出异常优先。
 
@@ -333,7 +335,7 @@ def disable_agent(ip):
 ## 面向对象编程
 
 
-### 使用 dataclass 定义数据类
+### BBP-1012 使用 dataclass 定义数据类
 
 对于需要在初始化阶段设置很多属性的数据类，应该使用 dataclass 来简化代码。但同时注意不要滥用，比如一些实例化参数少、没有太多“数据”属性的类仍然应该使用传统 `__init__` 方法。
 
@@ -369,7 +371,7 @@ class BcsInfoProvider:
 
 ## 异常处理
 
-### 避免含糊不清的异常捕获
+### BBP-1013 避免含糊不清的异常捕获
 
 不要捕获过于基础的异常类，比如 Exception / BaseException，捕获这些会扩大处理的异常范围，容易隐藏其他本来不应该被捕获的问题。
 
@@ -391,11 +393,9 @@ except Exception as error:
     logger.exception("some error: %s", error)
 ```
 
-
-
 ## 工具选择
 
-### 使用 PyMySQL 连接 MySQL 数据库
+### BBP-1014 使用 PyMySQL 连接 MySQL 数据库
 
 建议使用纯 Python 实现的 [PyMySQL](https://github.com/PyMySQL/PyMySQL) 模块来连接 MySQL 数据库。如果需要在项目中完全替代 MySQL-python 模块，可以使用模块提供的猴子补丁功能：
 
@@ -407,7 +407,7 @@ pymysql.install_as_MySQLdb()
 setattr(pymysql, 'version_info', (1, 2, 6, "final", 0))
 ```
 
-### 使用 dogpile.cache 做缓存
+### BBP-1015 使用 dogpile.cache 做缓存
 
 `dogpile.caches` 扩展性强，提供了一套可以对接多中后端存储的缓存 API，推荐作为项目中缓存的基础库。
 
@@ -436,7 +436,7 @@ Django最佳实践、优化思路。
 
 ## DB 建模
 
-### 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值
+### BBP-2001 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值
 
 ```python
 class Students(models.Model):
@@ -452,7 +452,7 @@ class Students(models.Model):
     gender = models.IntegerField("性别", choices=GENDER_CHOICES)
 ```
 
-### 如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引
+### BBP-2002 如果某个字段或某组字段被频繁用于过滤或排序查询，建议建立单字段索引或联合索引
 
 ```python
 # 字段索引：使用 db_index=True 添加索引
@@ -467,7 +467,7 @@ class Meta:
     unique_together = ('field_name_1', 'field_name_2')
 ```
 
-### 变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`
+### BBP-2003 变更数据表时，新增字段尽量使用 `null=True` 而不是 `default`
 
 ```python
 # BAD
@@ -484,7 +484,7 @@ new_field = models.CharField(null=True)
 
 ## DB 查询
 
-### 使用 .exists() 判断数据是否存在
+### BBP-2004 使用 .exists() 判断数据是否存在
 
 如果要查询记录是否存在，建议使用 `.exists()` 方法。该方法将会往数据库发起一条设置了 `LIMIT 1` 的查询语句，效率最佳。
 
@@ -499,7 +499,7 @@ if Foo.objects.filter(name='test').exists():
     # Do something
 ```
 
-### 使用 .count() 查询数据条目数
+### BBP-2005 使用 .count() 查询数据条目数
 
 如果要统计数据条目数，建议使用使用 `.count()` 方法。该方法将会往数据库发起一条 `SELECT count(*)` 查询语句。
 
@@ -512,7 +512,7 @@ count = len(Foo.objects.all())
 count = Foo.objects.count()
 ```
 
-### 避免 N + 1 查询
+### BBP-2006 避免 N + 1 查询
 
 可使用`select_related`提前将关联表进行 join，一次性获取相关数据，many-to-many 的外键则使用`prefetch_related`
 
@@ -543,7 +543,7 @@ for item in articles:
     item.tags.all()
 ```
 
-### 如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取
+### BBP-2007 如果仅查询外键 ID，则无需进行连表操作。使用 `外键名_id` 可直接获取
 
 ```python
 # 获取学生的班级ID
@@ -556,7 +556,7 @@ cls_id = student.cls.id
 cls_id = student.cls_id
 ```
 
-### 避免查询全部字段
+### BBP-2008 避免查询全部字段
 可使用`values`, `values_list`, `only`, `defer`等方法进行过滤出需要使用的字段。
 
 ```python
@@ -570,7 +570,7 @@ student_names = [student.name for student in students]
 students = Student.objects.all().values_list('name', flat=True)
 ```
 
-### 避免在循环中进行数据库操作
+### BBP-2009 避免在循环中进行数据库操作
 
 尽量使用 ORM 提供的批量方法，防止在数据量变大的时候产生大量数据库连接导致请求变慢
 
@@ -612,7 +612,7 @@ for project in projects:
 projects.update(enable=True)
 ```
 
-### 避免隐式的子查询
+### BBP-2010 避免隐式的子查询
 
 ```python
 # 查询符合条件的组别中的人员
@@ -626,7 +626,7 @@ group_ids = Group.objects.filter(type="typeA").values_list('id', flat=True)
 members = Member.objects.filter(group__id__in=list(group_ids))
 ```
 
-### `update_or_create` 与 `get_or_create` 通过 defaults 参数避免全表查询
+### BBP-2011 `update_or_create` 与 `get_or_create` 通过 defaults 参数避免全表查询
 
 使用 `update_or_create` 与 `get_or_create` 时，需要将 **查询字段** 和 **更新字段** 做区分：
 
@@ -651,7 +651,7 @@ ModelA.objects.update_or_create(
     }
 ```
 
-### `update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束
+### BBP-2012 `update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束
 
 
 ```python
@@ -664,7 +664,7 @@ host, is_created = Host.objects.get_or_create(
 )
 ```
 
-### 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询
+### BBP-2013 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询
 
 当查询结果有很多对象时，QuerySet 的缓存行为会导致使用大量内存。如果你需要对查询结果进行好几次循环，这种缓存是有意义的，但是对于 QuerySet 只循环一次的情况，缓存就没什么意义了。在这种情况下，`iterator()`可能是更好的选择。
 
@@ -678,7 +678,7 @@ for task in Task.objects.all().iterator():
     # do something
 ```
 
-### 针对数据库字段更新尽量使用 `update_fields`  
+### BBP-2014 针对数据库字段更新尽量使用 `update_fields`  
 
 如果要对数据库字段进行更新，使用 `update_fields` 避免并行 `save()` 产生数据冲突
 
@@ -694,7 +694,7 @@ foo_instance.save(update_fields=["bar_field"])
 
 同时需要注意的是，如果 `Model` 中包含 `auto_now` 字段时，需要在 `update_fields` 的列表中添加该字段，保证同时更新。
 
-### 使用 Django Extra 查询时，需要使用内置的字符串表达
+### BBP-2015 使用 Django Extra 查询时，需要使用内置的字符串表达
 
 ```python
 # BAD
@@ -706,7 +706,7 @@ Entry.objects.extra(where=[f"headline='{username}'"])
 Entry.objects.extra(where=['headline=%s'], params=[username])
 ```
 
-### 善用 bulk_create/bulk_update 减少批量数据库操作耗时
+### BBP-2016 善用 bulk_create/bulk_update 减少批量数据库操作耗时
 
 ```python
 # BAD
@@ -747,7 +747,7 @@ Task.objects.bulk_update(tasks, ['name'])
 - bulk_create 方法只执行一次数据库交互，这样相当于创建时间一样，并且自定字段不会在返回数据中
 - 当单次提交的对象可能过多时，可通过 `batch_size` 控制
 
-### 当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序
+### BBP-2017 当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序
 
 当 MySQL 版本较低时，DATETIME 类型默认是不支持 milliseconds 的，当批量创建对象时，会导致大量记录的 `auto_now_add` 字段都在同一秒，此时根据该字段是无法获得稳定的排序结果的。
 
@@ -782,7 +782,7 @@ class Foo(models.Model):
 
 蓝鲸监控团队的Golang实践，持续补充中...
 
-### channel空间设定为1或者阻塞
+### BBP-3001 channel空间设定为1或者阻塞
 
 如果改为其他长度的channel，都需要很详细的评估设计，因此建议默认考虑长度为1或阻塞的channel
 
@@ -794,7 +794,7 @@ c := make(chan int, 100)
 c := make(chan int)
 ```
 
-### 除for循环以外，不要在代码块初始化中使用:=
+### BBP-3002 除for循环以外，不要在代码块初始化中使用:=
 
 如果在代码块中使用了新建变量，容易导致覆盖上层的变量而不会发现，容易引发bug
 
@@ -811,7 +811,7 @@ if _, err = openFile("/path") {
 }
 ```
 
-### channel接受使用两段式
+### BBP-3003 channel接受使用两段式
 
 由于读取已关闭的channel会导致panic，因此要求在读取channel的代码都使用二段式，可以避免channel已关闭的导致panic
 
@@ -828,7 +828,7 @@ if _, ok = <- ch; !ok {
 }
 ```
 
-### 不能通过取出来的值来判断 key 是不是在 map 中
+### BBP-3004 不能通过取出来的值来判断 key 是不是在 map 中
 
 go 会返回元素对应数据类型的零值，取值操作总有值返回，不能通过取出来的值来判断 key 是不是在 map 中
 
@@ -847,7 +847,7 @@ if _, ok := x["demo3"]; !ok {
 }
 ```
 
-### 接口类型转换应使用两段式
+### BBP-3005 接口类型转换应使用两段式
 
 由于当接口(interface)类型转换为实际类型时，如果类型不正确或接口为nil，会导致panic。因此应该使用二段式或switch的方式来避免panic
 
@@ -874,7 +874,7 @@ default:
 }
 ```
 
-### 定义常量时，使用自增的方式定义
+### BBP-3006 定义常量时，使用自增的方式定义
 
 定义常量时，应使用`itoa`的方式由编译器协助为各个常量赋值，降低后续维护的成本
 
