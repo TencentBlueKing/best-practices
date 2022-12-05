@@ -16,22 +16,29 @@
       - [替代索引获取函数](#替代索引获取函数)
       - [替代属性获取函数](#替代属性获取函数)
     - [BBP-1005 logging 模块：尽量使用参数，而不是直接拼接字符串](#bbp-1005-logging-模块尽量使用参数而不是直接拼接字符串)
+    - [BBP-1006 使用 `timedelta.total_seconds()` 代替 `timedelta.seconds()` 获取相差总秒数](#bbp-1006-使用-timedeltatotal_seconds-代替-timedeltaseconds-获取相差总秒数)
+    - [BBP-1007 在协程中使用 `asyncio.sleep()` 代替 `time.sleep()`](#bbp-1007-在协程中使用-asynciosleep-代替-timesleep)
+    - [BBP-1008 当在**非测试**代码中使用 `assert` 时，妥善添加断言信息](#bbp-1008-当在非测试代码中使用-assert-时妥善添加断言信息)
   - [生成器与迭代器](#生成器与迭代器)
-    - [BBP-1006 警惕未激活生成器的陷阱](#bbp-1006-警惕未激活生成器的陷阱)
-    - [BBP-1007 使用现代化字符串格式化方法](#bbp-1007-使用现代化字符串格式化方法)
+    - [BBP-1009 警惕未激活生成器的陷阱](#bbp-1009-警惕未激活生成器的陷阱)
+    - [BBP-1010 使用现代化字符串格式化方法](#bbp-1010-使用现代化字符串格式化方法)
+    - [BBP-1011 在有分支判断时使用yield要记得及时return](#bbp-1011-在有分支判断时使用yield要记得及时return)
   - [函数](#函数)
-    - [BBP-1008 统一返回值类型](#bbp-1008-统一返回值类型)
-    - [BBP-1009 增加类型注解](#bbp-1009-增加类型注解)
-    - [BBP-1010 不要使用可变类型作为默认参数](#bbp-1010-不要使用可变类型作为默认参数)
-    - [BBP-1011 优先使用异常替代错误编码返回](#bbp-1011-优先使用异常替代错误编码返回)
+    - [BBP-1012 统一返回值类型](#bbp-1012-统一返回值类型)
+    - [BBP-1013 增加类型注解](#bbp-1013-增加类型注解)
+    - [BBP-1014 不要使用可变类型作为默认参数](#bbp-1014-不要使用可变类型作为默认参数)
+    - [BBP-1015 优先使用异常替代错误编码返回](#bbp-1015-优先使用异常替代错误编码返回)
   - [面向对象编程](#面向对象编程)
-    - [BBP-1012 使用 dataclass 定义数据类](#bbp-1012-使用-dataclass-定义数据类)
+    - [BBP-1016 使用 dataclass 定义数据类](#bbp-1016-使用-dataclass-定义数据类)
       - [在数据量较大的场景下，需要在结构的便利性和性能中做平衡](#在数据量较大的场景下需要在结构的便利性和性能中做平衡)
   - [异常处理](#异常处理)
-    - [BBP-1013 避免含糊不清的异常捕获](#bbp-1013-避免含糊不清的异常捕获)
+    - [BBP-1017 避免含糊不清的异常捕获](#bbp-1017-避免含糊不清的异常捕获)
   - [工具选择](#工具选择)
-    - [BBP-1014 使用 PyMySQL 连接 MySQL 数据库](#bbp-1014-使用-pymysql-连接-mysql-数据库)
-    - [BBP-1015 使用 dogpile.cache 做缓存](#bbp-1015-使用-dogpilecache-做缓存)
+    - [BBP-1018 使用 PyMySQL 连接 MySQL 数据库](#bbp-1018-使用-pymysql-连接-mysql-数据库)
+    - [BBP-1019 使用 dogpile.cache 做缓存](#bbp-1019-使用-dogpilecache-做缓存)
+    - [BBP-1020 使用Arrow来处理时间相关转换](#bbp-1020-使用arrow来处理时间相关转换)
+  - [风格建议](#风格建议)
+    - [BBP-1021 对条件判断，在不需要提前返回的情况下，尽量推荐使用正判断](#bbp-1021-对条件判断在不需要提前返回的情况下尽量推荐使用正判断)
 - [Django](#django)
   - [DB 建模](#db-建模)
     - [BBP-2001 如果字段的取值是一个有限集合，应使用 `choices` 选项声明枚举值](#bbp-2001-如果字段的取值是一个有限集合应使用-choices-选项声明枚举值)
@@ -50,8 +57,8 @@
     - [BBP-2013 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询](#bbp-2013-如果查询集只用于单次循环建议使用-iterator-保持连接查询)
     - [BBP-2014 针对数据库字段更新尽量使用 `update_fields`](#bbp-2014-针对数据库字段更新尽量使用-update_fields)
     - [BBP-2015 使用 Django Extra 查询时，需要使用内置的字符串表达](#bbp-2015-使用-django-extra-查询时需要使用内置的字符串表达)
-    - [BBP-2016 善用 bulk_create/bulk_update 减少批量数据库操作耗时](#bbp-2016-善用-bulk_createbulk_update-减少批量数据库操作耗时)
-    - [BBP-2017 当 MySQL 版本较低时（<5.7)，谨慎使用 DateTimeField 进行排序](#bbp-2017-当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
+    - [BBP-2016 善用 bulk\_create/bulk\_update 减少批量数据库操作耗时](#bbp-2016-善用-bulk_createbulk_update-减少批量数据库操作耗时)
+    - [BBP-2017 当 MySQL 版本较低时（\<5.7)，谨慎使用 DateTimeField 进行排序](#bbp-2017-当-mysql-版本较低时57谨慎使用-datetimefield-进行排序)
 - [Golang](#golang)
     - [BBP-3001 channel空间设定为1或者阻塞](#bbp-3001-channel空间设定为1或者阻塞)
     - [BBP-3002 除for循环以外，不要在代码块初始化中使用:=](#bbp-3002-除for循环以外不要在代码块初始化中使用)
@@ -59,6 +66,11 @@
     - [BBP-3004 不能通过取出来的值来判断 key 是不是在 map 中](#bbp-3004-不能通过取出来的值来判断-key-是不是在-map-中)
     - [BBP-3005 接口类型转换应使用两段式](#bbp-3005-接口类型转换应使用两段式)
     - [BBP-3006 定义常量时，使用自增的方式定义](#bbp-3006-定义常量时使用自增的方式定义)
+- [DRF](#drf)
+    - [BBP-4001 在数据量较大的场景下，避免使用 Model Serializer](#bbp-4001-在数据量较大的场景下避免使用-model-serializer)
+- [Redis](#redis)
+    - [BBP-5001 善用pipeline和redis新特性](#bbp-5001-善用pipeline和redis新特性)
+    - [BBP-5002 善用 lua 脚本保证多个 Redis 操作的原子性](#bbp-5002-善用-lua-脚本保证多个-redis-操作的原子性)
 
 # Python
 
@@ -179,9 +191,131 @@ logging.warning(f"To iterate is {human}, to recurse {divine}")
 logging.warning("To iterate is %s, to recurse %s", "human", "divine")
 ```
 
+### BBP-1006 使用 `timedelta.total_seconds()` 代替 `timedelta.seconds()` 获取相差总秒数
+
+```python
+from datetime import datetime
+dt1 = datetime.now()
+dt2 = datetime.now()
+
+# BAD
+print((dt2 - dt1).seconds)
+
+# GOOD
+print((dt2 - dt1).total_seconds())
+```
+
+在源码中，seconds 的计算方式为：days, seconds = divmod(seconds, 24*3600)
+
+表达式右侧 seconds 是总秒数，被一天的总秒数取模得到 seconds
+
+```python
+@property
+def seconds(self):
+    """seconds"""
+    return self._seconds
+
+# in the `__new__`, you can find the `seconds` is modulo by the total number of seconds in a day
+def __new__(cls, days=0, seconds=0, microseconds=0,
+            milliseconds=0, minutes=0, hours=0, weeks=0):
+    seconds += minutes*60 + hours*3600
+    # ...
+    if isinstance(microseconds, float):
+        microseconds = round(microseconds + usdouble)
+        seconds, microseconds = divmod(microseconds, 1000000)
+        # ! 👇
+        days, seconds = divmod(seconds, 24*3600)
+        d += days
+        s += seconds
+    else:
+        microseconds = int(microseconds)
+        seconds, microseconds = divmod(microseconds, 1000000)
+        # ! 👇
+        days, seconds = divmod(seconds, 24*3600)
+        d += days
+        s += seconds
+        microseconds = round(microseconds + usdouble)
+    # ...
+```
+
+`total_seconds` 可以得到一个准确的差值：
+```python
+def total_seconds(self):
+    """Total seconds in the duration."""
+    return ((self.days * 86400 + self.seconds) * 10**6 +
+        self.microseconds) / 10**6
+```
+
+### BBP-1007 在协程中使用 `asyncio.sleep()` 代替 `time.sleep()`
+
+`time.sleep()` 是阻塞的，协程执行到此会导致整体事件循环卡住
+
+`asyncio.sleep()` 非阻塞，事件循环将运行其他逻辑
+
+```python
+import time
+import asyncio
+
+# BAD
+async def execute_task(task_id: int):
+    print(f"task[{task_id}] hello")
+    time.sleep(1)
+    print(f"task[{task_id}] world")
+
+# GOOD
+async def execute_task(task_id: int):
+    print(f"task[{task_id}] hello")
+    await asyncio.sleep(1)
+    print(f"task[{task_id}] world")
+```
+
+上述例子将通过以下代码执行：
+
+```python
+import asyncio
+async def main():
+    await asyncio.gather(task(1), task(2))
+await main()
+```
+
+`BAD` 将输出以下内容，`task[1]` 执行完 `hello`  后被 `time.sleep()` 阻塞
+```
+task[1] hello
+task[1] world
+task[2] hello
+task[2] world
+```
+
+`GOOD` 将输出以下内容，`task[1]` 执行完 `hello` 后，`await asyncio.sleep(1)` 将挂起 `task[1]`，开始执行 `task[2]`
+```
+task[1] hello
+task[2] hello
+task[1] world
+task[2] world
+```
+
+### BBP-1008 当在**非测试**代码中使用 `assert` 时，妥善添加断言信息
+
+```python
+>>> assert 1 == 0
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AssertionError
+```
+
+在大段的日志中，单独存在的 `AssertionError` 不利于日志检索和问题定位，所以添加上可读的断言信息是更推荐的做法。
+
+```python
+# BAD
+assert "hello" == "world"
+
+# GOOD
+assert "hello" == "world", "Hello is not equal to world"
+```
+
 ## 生成器与迭代器
 
-### BBP-1006 警惕未激活生成器的陷阱
+### BBP-1009 警惕未激活生成器的陷阱
 
 调用生成器函数后，拿到的对象是处于“未激活”状态的生成器对象。比如下面的 `get_something()` 函数，当你调用它时并不会抛出 `ZeroDivisionError` 异常：
 
@@ -223,7 +357,7 @@ Traceback (most recent call last):
 ZeroDivisionError: division by zero
 ```
 
-### BBP-1007 使用现代化字符串格式化方法
+### BBP-1010 使用现代化字符串格式化方法
 
 在需要格式化字符串时，请使用 [str.format()](https://docs.python.org/3/library/stdtypes.html#str.format) 或 [f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings)。
 
@@ -249,10 +383,30 @@ f"{a}-{b}-{c}-{d}"
 ```
 
 
+### BBP-1011 在有分支判断时使用yield要记得及时return
+
+有时我们常会把 yield 类同于 return，为了减少一些循环次数，我们常会把 return 直接替换成 yield，然而这时候就很容易出现 bug，尤其是当一个函数中有多个条件分支时。
+
+```python
+# BAD
+def test(a: int):
+    if a > 1:
+        yield "a"
+    yield "b"
+
+list(test(2)) # 预期是 ["a"]， 实际是 ["a", "b"]，因为 yield 仅是让度 CPU 而非结束当前函数
+
+# GOOD
+def test(a: int):
+    if a > 1:
+        yield "a"
+        return # 控制好函数的生命周期，以达到预期效果
+    yield "b"
+```
 
 ## 函数
 
-### BBP-1008 统一返回值类型
+### BBP-1012 统一返回值类型
 
 单个函数应该总是返回同一类数据。
 
@@ -271,7 +425,7 @@ def is_odd(num):
     return False
 ```
 
-### BBP-1009 增加类型注解
+### BBP-1013 增加类型注解
 
 对变量和函数的参数返回值类型做注解，有助于通过静态检查减少类型方面的错误。
 
@@ -285,7 +439,7 @@ def greeting(name: str) -> str:
     return 'Hello ' + name
 ```
 
-### BBP-1010 不要使用可变类型作为默认参数
+### BBP-1014 不要使用可变类型作为默认参数
 
 函数作为对象定义的时候就被执行，默认参数是函数的属性，它的值可能会随着函数被调用而改变。
 
@@ -312,7 +466,7 @@ def foo(li : Optional[list] = None):
 [1]
 ```
 
-### BBP-1011 优先使用异常替代错误编码返回
+### BBP-1015 优先使用异常替代错误编码返回
 
 当函数需要返回错误信息时，以抛出异常优先。
 
@@ -335,7 +489,7 @@ def disable_agent(ip):
 ## 面向对象编程
 
 
-### BBP-1012 使用 dataclass 定义数据类
+### BBP-1016 使用 dataclass 定义数据类
 
 对于需要在初始化阶段设置很多属性的数据类，应该使用 dataclass 来简化代码。但同时注意不要滥用，比如一些实例化参数少、没有太多“数据”属性的类仍然应该使用传统 `__init__` 方法。
 
@@ -371,7 +525,7 @@ class BcsInfoProvider:
 
 ## 异常处理
 
-### BBP-1013 避免含糊不清的异常捕获
+### BBP-1017 避免含糊不清的异常捕获
 
 不要捕获过于基础的异常类，比如 Exception / BaseException，捕获这些会扩大处理的异常范围，容易隐藏其他本来不应该被捕获的问题。
 
@@ -395,7 +549,7 @@ except Exception as error:
 
 ## 工具选择
 
-### BBP-1014 使用 PyMySQL 连接 MySQL 数据库
+### BBP-1018 使用 PyMySQL 连接 MySQL 数据库
 
 建议使用纯 Python 实现的 [PyMySQL](https://github.com/PyMySQL/PyMySQL) 模块来连接 MySQL 数据库。如果需要在项目中完全替代 MySQL-python 模块，可以使用模块提供的猴子补丁功能：
 
@@ -407,7 +561,7 @@ pymysql.install_as_MySQLdb()
 setattr(pymysql, 'version_info', (1, 2, 6, "final", 0))
 ```
 
-### BBP-1015 使用 dogpile.cache 做缓存
+### BBP-1019 使用 dogpile.cache 做缓存
 
 `dogpile.caches` 扩展性强，提供了一套可以对接多中后端存储的缓存 API，推荐作为项目中缓存的基础库。
 
@@ -427,6 +581,83 @@ def get_application(username):
 @region.cache_on_arguments(expiration_time=3600, function_key_generator=ignore_access_token) # function_key_generator 参考官方文档
 def get_application(access_token, username):
     # your code
+```
+
+### BBP-1020 使用Arrow来处理时间相关转换
+
+如果想要转换一个时间，可以将任意对象扔给arrow，然后转成对应的函数格式
+
+常见的时间格式:
+
+  - object: datetime对象(`datetime.datetime.now()`)，区分时区
+  - int: 整数timestamp(`int(time.time())`)，不区分时区
+  - string: 代表时间的字符串(`2022-11-08 22:57:22`)(`str(datetime.datetime.now())`)，区分时区
+
+这些对象统一都可以扔给arrow.get(任意对象)，得到一个arrow对象`arr`
+
+  - 转成datetime对象: arr.
+
+    ```python
+    # 带时区
+    In [18]: arr.datetime
+    Out[18]: datetime.datetime(2022, 11, 8, 22, 57, 22, 171057, tzinfo=tzlocal())
+
+    # 不带时区
+    In [19]: arr.naive
+    Out[19]: datetime.datetime(2022, 11, 8, 22, 57, 22, 171057)
+    ```    
+
+  - 转成timestamp整数: 
+  
+    ```python
+    In [20]: arr.timestamp
+    Out[20]: 1667919442
+    ```
+
+  - 转成字符串: 
+
+    ```python
+    In [21]: arr.strftime("%Y-%m-%d %H:%M:%S")
+    Out[21]: '2022-11-08 22:57:22'
+    ```
+
+最佳实践（普通时间 → Unix时间戳(Unix timestamp)）
+
+```python
+# BAD
+In [22]:  int(time.mktime(time.strptime('2022-11-08 22:57:22+0800', '%Y-%m-%d %H:%M:%S%z')))
+Out[22]: 1667919442
+
+# GOOD
+In [23]: arrow.get('2022-11-08 22:57:22+0800').timestamp
+Out[23]: 1667919442
+```
+
+无须自己指定时间格式，直接转换即可
+
+
+更多请查看:
+- 文档：https://arrow.readthedocs.io/en/latest/
+- 仓库：https://github.com/arrow-py/arrow
+
+## 风格建议
+
+### BBP-1021 对条件判断，在不需要提前返回的情况下，尽量推荐使用正判断
+
+在判断结果前加否，代码可读性变差，让人的理解成本增加，后续维护也不方便
+
+```python
+# BAD
+if not validated_data["data_type"] == "cleaned":
+    kafka_config = data_id_info["mq_config"]
+else:
+    kafka_config = data_id_info["result_table_list"][0]["shipper_list"][0]
+
+# GOOD
+if validated_data["data_type"] == "cleaned":
+     kafka_config = data_id_info["result_table_list"][0]["shipper_list"][0]
+else:
+    kafka_config = data_id_info["mq_config"]  
 ```
 
 # Django
@@ -653,15 +884,44 @@ ModelA.objects.update_or_create(
 
 ### BBP-2012 `update_or_create` 与 `get_or_create` 查询条件的字段必须要有唯一性约束
 
+在并发请求的情况下，`get_or_create` 并不能保证记录的唯一性，会存在重复创建的情况。因此使用此方法前，需要确定用于存在性查询的字段是否设置了DB级别的唯一性约束。
 
 ```python
-# `update_or_create` 与 `get_or_create` 不是线程安全的。
-# 为了保证逻辑的正确性，Host 表中的 ip 和 bk_cloud_id 字段必须设置为 unique_together。
-# 否则在高并发情况下，可能会创建出多条相同的记录，最终导致逻辑异常
-host, is_created = Host.objects.get_or_create(
-    ip="127.0.0.1",
-    bk_cloud_id="0"
-)
+# BAD
+# models.py
+class Topic(models.Model):
+    """
+    模型定义
+    """
+    username = models.CharField(max_length=32)
+    title = models.CharField(max_length=128)
+
+
+# views.py
+def view_func(request):
+    # 并发请求场景下可能会出现重复记录
+    Topic.objects.get_or_create(username="foo", title="bar")
+
+
+# GOOD
+# models.py
+class Topic(models.Model):
+    """
+    模型定义
+    """
+    username = models.CharField(max_length=32)
+    title = models.CharField(max_length=128)
+
+    class Meta:
+        # 增加 username 和 title 字段联合唯一性约束
+        unique_together = ("username", "title")
+
+
+# views.py
+def view_func(request):
+    # 存在DB级别的唯一性约束，能够保证不会创建重复记录
+    Topic.objects.get_or_create(username="foo", title="bar")
+
 ```
 
 ### BBP-2013 如果查询集只用于单次循环，建议使用 `iterator()` 保持连接查询
@@ -890,4 +1150,93 @@ const (
    Red = iota
    Gray 
 )
+```
+
+# DRF
+
+### BBP-4001 在数据量较大的场景下，避免使用 Model Serializer
+
+DRF 在 3.10 版本以前，`ModelSerializer` 有较大的性能问题，用作渲染大量的数据返回可能会耗时非常久，可以考虑使用 `Serializer` 或者原生数据结构返回。
+```python
+# 当有大量 user 对象需要渲染时
+
+# BAD
+class UserModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+# GOOD
+# 性能有所提升，同时又不会破坏 Serializer 结构
+class UserSerializer(serializers.Serializer):
+    # 将需要的字段平铺出来
+    username = serializers.CharField()
+    ...
+
+# GOOD
+# 最快！直接返回原始结构体，但是可能需要处理多种对象
+def serialize_user(user: User) -> Dict[str, Any]:
+    ...
+    return {
+        "username": "foo",
+        ...
+    }
+```
+
+在 DRF 3.10 版本以后，`ModelSerializer` 性能有一定程度的提升，但依旧会比后两种处理慢，可以根据场景和具体测试数据选择适合的写法。
+
+参考：
+- https://hakibenita.com/django-rest-framework-slow
+
+
+# Redis
+
+### BBP-5001 善用pipeline和redis新特性
+
+在对redis的高频操作中，由于[RTT](https://en.wikipedia.org/wiki/Round-trip_delay)的存在。单点对redis的qps很大程度上受到RTT的限制。当ping响应在1ms时，单点qps最大也不会超过1k/s。
+
+```python
+# BAD
+for item in item_list:
+    client.lpush(key, item)
+
+# GOOD （节省了RTT）
+pipeline = client.pipeline()
+for item in item_list:
+    pipeline.lpush(key, item)
+pipeline.execute()
+
+# BETTER（redis2.4及更高版本）
+client.lpush(key, *item_list)
+```
+
+### BBP-5002 善用 lua 脚本保证多个 Redis 操作的原子性
+
+如果对 Redis 的同一个 `key` 有多次操作并且希望保证操作的原子性，除了加锁的复杂操作外，可以通过将多条 Redis 操作指令封装为 lua 脚本，再通过执行 lua 脚本的方式实现。
+
+业务场景：并发场景下，检查 "best-practices:identifier" 的值是否为 `abc`，是的话删除。
+
+```python
+# BAD
+if redis_client.get("best-practices:identifier") == "abc":
+    return redis_client.del("best-practices:identifier")
+```
+
+上述实现的问题：并发场景下，`best-practices:identifier` 对应的值可能被修改，如果修改是在 `get` `del` 操作间隙发生，那么会导致值不为 `abc` 的 `best-practices:identifier` 被误删。
+
+通过 lua 脚本，可以将 `get` `del` 封装成原子性操作，避免上述问题的发生。
+
+```python
+# GOOD
+# lua 脚本：满足期望值将 key 删除，否则返回 0
+del_script = """
+if redis.call("get",KEYS[1]) == ARGV[1] then
+    return redis.call("del",KEYS[1])
+else
+    return 0
+end
+"""
+
+del_script_func = redis_client.register_script(del_script)
+return del_script_func(keys=["best-practices:identifier"], args=["abc"])
 ```
